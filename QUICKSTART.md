@@ -7,7 +7,7 @@ Get your Movie Poster Card up and running in 5 minutes with the new auto-load fe
 ### Option 1: HACS (Recommended)
 1. Open HACS → Frontend
 2. Click ⋮ → Custom repositories
-3. Add: `https://github.com/yourusername/movie-poster-card`
+3. Add: `https://github.com/ursnirmalt/movie-poster-card`
 4. Install "Movie Poster Card"
 5. Restart Home Assistant
 
