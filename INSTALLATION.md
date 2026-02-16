@@ -28,7 +28,7 @@ If you don't have HACS installed:
 2. Go to **HACS** → **Frontend**
 3. Click the **three dots menu** (⋮) in the top right
 4. Select **Custom repositories**
-5. Add this URL: `https://github.com/yourusername/movie-poster-card`
+5. Add this URL: `https://github.com/ursnirmalt/movie-poster-card`
 6. Select category: **Lovelace**
 7. Click **Add**
 
@@ -46,7 +46,7 @@ If you prefer manual installation:
 
 #### Step 1: Download Files
 
-1. Download `movie-poster-card.js` from the [releases page](https://github.com/yourusername/movie-poster-card/releases)
+1. Download `movie-poster-card.js` from the [releases page](https://github.com/ursnirmalt/movie-poster-card/releases)
 2. Optionally download `movie-poster-card-editor.js` for UI configuration
 
 #### Step 2: Copy to Home Assistant
@@ -375,7 +375,7 @@ title: "Action Collection"
 
 If you're still having issues:
 
-1. Check the [GitHub Issues](https://github.com/yourusername/movie-poster-card/issues)
+1. Check the [GitHub Issues](https://github.com/ursnirmalt/movie-poster-card/issues)
 2. Search for similar problems
 3. Create a new issue with:
    - Your configuration (remove sensitive data)
