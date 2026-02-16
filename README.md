@@ -1,142 +1,254 @@
 # Movie Poster Card for Home Assistant
 
-A custom HACS card that displays movie posters with seamless Apple TV (or any media player) integration. When your media player starts playing, the poster automatically transitions to show the media artwork in fullscreen with a beautiful progress bar, runtime, and playback information.
+A custom HACS card that displays movie posters with seamless Apple TV (or any media player) integration. **NEW:** Auto-load posters from folders, portrait/landscape layouts, fullscreen mode, and advanced widget customization!
 
 ![Movie Poster Card Demo](https://via.placeholder.com/800x450.png?text=Movie+Poster+Card+Demo)
 
-## Features
+## ✨ Features
 
-✨ **Dynamic Poster Slideshow** - Automatically cycles through your movie poster collection  
-🎬 **Media Player Integration** - Seamlessly transitions to media artwork when playing  
+### Core Features
+🎬 **Auto-Load Posters** - Automatically load all posters from a folder (no manual list needed!)  
+📺 **Media Player Integration** - Seamlessly transitions to media artwork when playing  
+🖼️ **Random or Sequential** - Choose how posters cycle through your collection  
 📊 **Progress Bar** - Beautiful animated progress bar showing current playback position  
 ⏱️ **Runtime Display** - Shows total runtime and elapsed time  
-🌤️ **Weather Integration** (Optional) - Display current weather conditions  
-🕐 **Time Display** (Optional) - Show current time  
-🎨 **Sleek Design** - Cinematic UI with smooth transitions and glassmorphism effects  
-📱 **Responsive** - Works on all screen sizes  
 
-## Installation
+### Display & Layout
+📱 **Portrait & Landscape** - Optimized layouts for any screen orientation  
+🖥️ **Fullscreen Mode** - Take over the entire viewport for dedicated displays  
+🎨 **Hide Toolbar** - Edge-to-edge display for clean, immersive experience  
+✨ **Sleek Design** - Cinematic UI with smooth transitions and glassmorphism effects  
 
-### HACS Installation (Recommended)
+### Widgets & Customization
+🕐 **Time Widget** - Optional clock display with 6 position options  
+🌤️ **Weather Widget** - Optional weather display with custom styling  
+🎨 **Widget Styles** - Glass, solid, or minimal preset styles  
+💅 **Custom CSS** - Full control over widget appearance and position  
+🎯 **Flexible Positioning** - Place widgets anywhere: corners, centers, top, or bottom  
 
-1. Open HACS in Home Assistant
-2. Go to "Frontend"
-3. Click the three dots menu (top right) and select "Custom repositories"
-4. Add this repository URL: `https://github.com/ursnirmalt/movie-poster-card`
-5. Category: `Lovelace`
-6. Click "Add"
-7. Find "Movie Poster Card" in the list and click "Install"
-8. Restart Home Assistant
+### Performance
+⚡ **Responsive** - Works on all screen sizes  
+🔄 **Smooth Transitions** - Configurable animation speeds  
+🎛️ **Visual Configuration** - Easy-to-use UI editor  
 
-### Manual Installation
+## 🚀 Quick Start
 
-1. Download `movie-poster-card.js` from this repository
-2. Copy it to your `config/www/` folder
-3. Add the resource to your Lovelace dashboard:
-   ```yaml
-   resources:
-     - url: /local/movie-poster-card.js
-       type: module
-   ```
-4. Restart Home Assistant
+### Installation via HACS
 
-## Configuration
+1. Open HACS → Frontend
+2. Click ⋮ → Custom repositories
+3. Add: `https://github.com/yourusername/movie-poster-card`
+4. Install "Movie Poster Card"
+5. Restart Home Assistant
 
 ### Basic Configuration
 
 ```yaml
 type: custom:movie-poster-card
 media_player: media_player.apple_tv
-poster_path: /local/posters
-posters:
-  - /local/posters/inception.jpg
-  - /local/posters/interstellar.jpg
-  - /local/posters/tenet.jpg
-  - /local/posters/dunkirk.jpg
+poster_folder: /local/posters
+auto_load_folder: true
+poster_order: random
 ```
 
-### Full Configuration
+That's it! The card will automatically load all images from `/config/www/posters/`
+
+## 📋 Configuration Options
+
+### Required
+| Option | Type | Description |
+|--------|------|-------------|
+| `media_player` | string | Entity ID of your media player |
+
+### Poster Loading (NEW!)
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `poster_folder` | string | `/local/posters` | Folder path containing poster images |
+| `auto_load_folder` | boolean | `true` | Auto-load posters from folder |
+| `poster_order` | string | `random` | Poster order: `random` or `sequential` |
+| `posters` | list | `[]` | Manual list of poster paths (optional) |
+
+### Layout & Display (NEW!)
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `layout` | string | `landscape` | Layout: `landscape` or `portrait` |
+| `fullscreen` | boolean | `false` | Enable fullscreen mode |
+| `hide_toolbar` | boolean | `false` | Hide padding for edge-to-edge display |
+| `poster_fit` | string | `cover` | How posters fit: `cover` or `contain` |
+
+### Widgets (NEW!)
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `widget_style` | string | `glass` | Widget style: `glass`, `solid`, or `minimal` |
+| `time_position` | string | `top-right` | Time position: `top-left`, `top-right`, `top-center`, `bottom-left`, `bottom-right`, `bottom-center` |
+| `weather_position` | string | `top-right` | Weather position (same options as time) |
+| `time_style` | object | `{}` | Custom CSS for time widget |
+| `weather_style` | object | `{}` | Custom CSS for weather widget |
+
+### Display Options
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `show_time` | boolean | `true` | Display time widget |
+| `show_weather` | boolean | `false` | Display weather widget |
+| `weather_entity` | string | `''` | Weather entity ID |
+| `show_now_playing_text` | boolean | `true` | Show "NOW PLAYING" text |
+| `title` | string | `Movie Collection` | Card title when showing posters |
+
+### Timing
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `slide_interval` | number | `30` | Seconds between poster slides |
+| `transition_duration` | number | `1000` | Transition animation duration (ms) |
+
+## 📁 Setting Up Posters
+
+### Option 1: Auto-Load from Folder (Recommended)
+
+1. Create folder: `/config/www/posters/`
+2. Add your poster images
+3. Configure:
+```yaml
+type: custom:movie-poster-card
+media_player: media_player.apple_tv
+poster_folder: /local/posters
+auto_load_folder: true
+poster_order: random
+```
+
+**Supported formats:** JPG, JPEG, PNG, WebP
+
+### Option 2: Manual List
 
 ```yaml
 type: custom:movie-poster-card
 media_player: media_player.apple_tv
-poster_path: /local/posters
 posters:
-  - /local/posters/movie1.jpg
-  - /local/posters/movie2.jpg
-  - /local/posters/movie3.jpg
-slide_interval: 30  # Seconds between poster changes
+  - /local/posters/inception.jpg
+  - /local/posters/interstellar.jpg
+  - /local/posters/tenet.jpg
+```
+
+### Organize by Genre
+
+```
+config/www/posters/
+  ├── action/
+  ├── scifi/
+  ├── drama/
+  └── kids/
+```
+
+Then create separate cards:
+```yaml
+# Action Movies
+type: custom:movie-poster-card
+media_player: media_player.apple_tv
+poster_folder: /local/posters/action
+auto_load_folder: true
+title: "Action Collection"
+```
+
+## 🎨 Example Configurations
+
+### Wall Panel (Fullscreen)
+```yaml
+type: custom:movie-poster-card
+media_player: media_player.wall_tablet
+poster_folder: /local/posters
+auto_load_folder: true
+fullscreen: true
+hide_toolbar: true
+layout: landscape
 show_time: true
 show_weather: true
 weather_entity: weather.home
-show_now_playing_text: true
-idle_timeout: 300  # Seconds before returning to poster mode
-transition_duration: 1000  # Milliseconds for transitions
-poster_fit: cover  # or 'contain'
-title: "My Movie Collection"
+time_position: top-left
+weather_position: top-right
 ```
 
-## Configuration Options
-
-| Name | Type | Default | Description |
-|------|------|---------|-------------|
-| `media_player` | string | **required** | Entity ID of your media player (e.g., `media_player.apple_tv`) |
-| `poster_path` | string | `/local/posters` | Base path for poster images |
-| `posters` | list | `[]` | Array of poster image paths |
-| `slide_interval` | number | `30` | Seconds between poster slides |
-| `show_time` | boolean | `true` | Display current time |
-| `show_weather` | boolean | `false` | Display weather widget |
-| `weather_entity` | string | `''` | Weather entity ID (required if show_weather is true) |
-| `show_now_playing_text` | boolean | `true` | Show "NOW PLAYING" text when media is active |
-| `idle_timeout` | number | `300` | Seconds of inactivity before returning to posters |
-| `transition_duration` | number | `1000` | Transition animation duration in milliseconds |
-| `poster_fit` | string | `cover` | How posters fit the screen (`cover` or `contain`) |
-| `title` | string | `Movie Collection` | Title displayed when showing posters |
-
-## Setting Up Your Posters
-
-### Directory Structure
-
-Create a folder in your Home Assistant configuration:
-
-```
-config/
-  www/
-    posters/
-      inception.jpg
-      interstellar.jpg
-      tenet.jpg
-      ...
+### Portrait Tablet
+```yaml
+type: custom:movie-poster-card
+media_player: media_player.ipad
+poster_folder: /local/posters
+auto_load_folder: true
+layout: portrait
+time_position: top-center
+weather_position: bottom-center
 ```
 
-### Adding Posters
+### Custom Styled Widgets
+```yaml
+type: custom:movie-poster-card
+media_player: media_player.apple_tv
+poster_folder: /local/posters
+auto_load_folder: true
+show_time: true
+show_weather: true
+weather_entity: weather.home
+time_style:
+  font-size: 1.8rem
+  font-weight: 700
+  color: '#FFD700'
+  background: 'rgba(0, 0, 0, 0.9)'
+  border: 3px solid #FFD700
+  border-radius: 30px
+weather_style:
+  font-size: 1.2rem
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+  border-radius: 25px
+```
 
-1. Download movie poster images (recommended size: 1000x1500px or similar aspect ratio)
-2. Save them to `config/www/posters/`
-3. Reference them in your configuration:
-   ```yaml
-   posters:
-     - /local/posters/inception.jpg
-     - /local/posters/interstellar.jpg
-   ```
+### Minimal Design
+```yaml
+type: custom:movie-poster-card
+media_player: media_player.apple_tv
+poster_folder: /local/posters
+auto_load_folder: true
+widget_style: minimal
+show_time: true
+show_weather: false
+time_position: bottom-right
+```
 
-### Poster Sources
+## 📚 Documentation
 
-You can use posters from:
-- **Local files** in `/config/www/` (recommended)
-- **Media folder** if you have it configured
-- **External URLs** (not recommended for performance)
+- **[Quick Start Guide](QUICKSTART.md)** - Get up and running in 5 minutes
+- **[Installation Guide](INSTALLATION.md)** - Detailed setup instructions
+- **[Styling Guide](STYLING.md)** - Widget customization and positioning
+- **[Advanced Guide](ADVANCED.md)** - Advanced features and tips
+- **[Example Configurations](examples.yaml)** - Ready-to-use configs
 
-## Media Player Compatibility
+## 🎯 Use Cases
 
-This card works with any Home Assistant media player that provides:
+### Home Entertainment
+- Living room entertainment centers
+- Home theater displays
+- Media room dashboards
+- Multi-room setups
+
+### Displays
+- Wall-mounted tablets
+- Digital picture frames
+- Kiosk mode displays
+- Dedicated movie displays
+
+### Layouts
+- Landscape monitors and TVs
+- Portrait tablets
+- Vertical displays
+- Multi-screen setups
+
+## 🔌 Media Player Compatibility
+
+Works with any Home Assistant media player that provides:
 - `state` (playing/paused/idle)
 - `entity_picture` (media artwork)
 - `media_title`
 - `media_duration`
 - `media_position`
 
-### Tested Media Players
+### Tested & Supported
 
 ✅ Apple TV  
 ✅ Plex  
@@ -145,117 +257,122 @@ This card works with any Home Assistant media player that provides:
 ✅ Roku  
 ✅ Chromecast  
 ✅ Spotify  
+✅ Any media player with required attributes
 
-## Advanced Examples
+## 🎨 Widget Positioning
 
-### Wall Panel Configuration
+Place time and weather widgets anywhere:
 
-Perfect for a dedicated wall-mounted tablet:
+**Corners:**
+- `top-left`
+- `top-right`
+- `bottom-left`
+- `bottom-right`
 
+**Centers:**
+- `top-center`
+- `bottom-center`
+
+**Example:**
 ```yaml
-type: custom:movie-poster-card
-media_player: media_player.living_room_tv
-posters:
-  - /local/posters/action/mad_max.jpg
-  - /local/posters/action/john_wick.jpg
-  - /local/posters/scifi/blade_runner.jpg
-  - /local/posters/scifi/arrival.jpg
-slide_interval: 20
-show_time: true
-show_weather: true
-weather_entity: weather.home
-title: "Home Cinema"
-transition_duration: 800
+time_position: top-left
+weather_position: top-right
 ```
 
-### Multi-Room Setup
+## 💅 Widget Styles
 
+### Preset Styles
+
+**Glass (Default)** - Modern glassmorphism
 ```yaml
-# Living Room
-type: custom:movie-poster-card
-media_player: media_player.living_room_apple_tv
-posters:
-  - /local/posters/family/toy_story.jpg
-  - /local/posters/family/frozen.jpg
-title: "Family Room"
-
-# Home Theater
-type: custom:movie-poster-card
-media_player: media_player.theater_apple_tv
-posters:
-  - /local/posters/premium/dune.jpg
-  - /local/posters/premium/blade_runner_2049.jpg
-show_weather: false
-title: "Home Theater"
+widget_style: glass
 ```
 
-### Minimal Configuration
-
+**Solid** - High contrast dark background
 ```yaml
-type: custom:movie-poster-card
-media_player: media_player.apple_tv
-posters:
-  - /local/posters/movie1.jpg
-  - /local/posters/movie2.jpg
-show_time: false
-show_weather: false
-show_now_playing_text: false
+widget_style: solid
 ```
 
-## Styling & Theming
+**Minimal** - Transparent, text only
+```yaml
+widget_style: minimal
+```
 
-The card uses a cinematic design with:
-- Glassmorphism effects
-- Smooth transitions
-- Gradient overlays
-- Text shadows for readability
-- Responsive layout
+### Custom Styles
 
-The design automatically adapts to:
-- Light and dark content
-- Different screen sizes
-- Portrait and landscape orientations
+Full CSS customization:
+```yaml
+time_style:
+  font-size: 1.5rem
+  font-weight: 700
+  color: '#FFD700'
+  background: 'rgba(0, 0, 0, 0.8)'
+  border: 2px solid #FFD700
+  border-radius: 25px
+  padding: 1rem 2rem
+```
 
-## Troubleshooting
+See [STYLING.md](STYLING.md) for complete guide.
 
-### Posters Not Showing
+## 🆕 What's New in v2.0
 
-1. Check file paths are correct (case-sensitive)
-2. Ensure files exist in `/config/www/posters/`
-3. Check browser console for errors
-4. Verify paths use `/local/` prefix
+- ✨ **Auto-load posters from folder** - No more manual poster lists!
+- 📐 **Portrait & Landscape layouts** - Optimized for any screen
+- 🖥️ **Fullscreen mode** - Take over the entire viewport
+- 🎨 **Widget positioning** - 6 position options for time/weather
+- 💅 **Widget styling** - 3 preset styles + custom CSS
+- 🎯 **Hide toolbar** - Edge-to-edge display option
+- 🔄 **Random or sequential** - Choose poster order
+- 🎛️ **Enhanced editor** - New visual configuration options
+
+## 🐛 Troubleshooting
+
+### Posters Not Loading
+
+**Auto-load not working?**
+- Ensure `auto_load_folder` is `true`
+- Check `poster_folder` path is correct
+- Verify images exist in `/config/www/posters/`
+- Supported formats: JPG, JPEG, PNG, WebP
+
+**Manual list not working?**
+- Check file paths (case-sensitive!)
+- Use `/local/` prefix
+- Verify files exist
 
 ### Media Player Not Updating
 
-1. Confirm media player entity ID is correct
-2. Check that media player provides required attributes
-3. Verify media player is properly configured in Home Assistant
+1. Verify entity ID is correct
+2. Check media player provides required attributes
+3. Test in Developer Tools → States
 
-### Weather Widget Not Showing
+### Widgets Not Showing
 
-1. Ensure `weather_entity` is configured
-2. Verify weather integration is set up
-3. Check entity ID is correct
+1. Check `show_time` or `show_weather` is `true`
+2. Verify weather entity (for weather widget)
+3. Check position values are valid
 
-### Performance Issues
+See [INSTALLATION.md](INSTALLATION.md) for more troubleshooting.
 
-1. Reduce `slide_interval` for fewer transitions
-2. Optimize poster image sizes (max 2000px width recommended)
-3. Use local files instead of external URLs
-4. Increase `transition_duration` for smoother animations
+## 🤝 Contributing
 
-## Contributing
+Contributions welcome! Please submit issues and pull requests on GitHub.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## 📄 License
 
-## License
+MIT License - See [LICENSE](LICENSE) for details
 
-MIT License - feel free to use and modify as needed.
+## 🙏 Credits
 
-## Credits
+Created for the Home Assistant community
 
-Inspired by wall-panel cards and cinematic UI design principles.
+Inspired by:
+- Wall panel cards
+- Cinematic UI design
+- Home theater enthusiasts
 
 ---
 
-**Note**: This is a custom card and requires manual installation or HACS. It is not officially affiliated with Home Assistant or Apple.
+**Questions?** Check the [documentation](INSTALLATION.md) or open an issue!
+
+**Love this card?** Give it a ⭐ on GitHub!

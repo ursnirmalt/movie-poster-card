@@ -131,6 +131,12 @@ class MoviePosterCardEditor extends HTMLElement {
           padding-bottom: 8px;
           border-bottom: 1px solid var(--divider-color);
         }
+        
+        .help-text {
+          font-size: 0.85em;
+          color: var(--secondary-text-color);
+          margin-top: 4px;
+        }
       </style>
       
       <div class="card-config">
@@ -148,29 +154,85 @@ class MoviePosterCardEditor extends HTMLElement {
           </div>
         </div>
         
-        <div class="section-title">Posters</div>
+        <div class="section-title">Poster Configuration</div>
         
         <div class="config-row">
-          <div class="config-label">Poster Path</div>
+          <div class="config-label">Auto-Load from Folder</div>
+          <div class="config-input">
+            <label class="switch">
+              <input type="checkbox" id="auto_load_folder" ${this._config.auto_load_folder !== false ? 'checked' : ''}>
+              <span class="slider"></span>
+            </label>
+            <div class="help-text">Automatically load posters from folder path</div>
+          </div>
+        </div>
+        
+        <div class="config-row">
+          <div class="config-label">Poster Folder</div>
           <div class="config-input">
             <input
               type="text"
-              id="poster_path"
-              value="${this._config.poster_path || '/local/posters'}"
+              id="poster_folder"
+              value="${this._config.poster_folder || '/local/posters'}"
               placeholder="/local/posters"
             />
+            <div class="help-text">Path to folder containing poster images</div>
           </div>
         </div>
         
         <div class="config-row">
-          <div class="config-label">Poster Images</div>
+          <div class="config-label">Poster Order</div>
           <div class="config-input">
-            <div class="poster-list" id="poster-list"></div>
-            <button class="add-btn" id="add-poster">Add Poster</button>
+            <select id="poster_order">
+              <option value="random" ${this._config.poster_order === 'random' ? 'selected' : ''}>Random</option>
+              <option value="sequential" ${this._config.poster_order === 'sequential' ? 'selected' : ''}>Sequential</option>
+            </select>
+            <div class="help-text">How to cycle through posters</div>
           </div>
         </div>
         
-        <div class="section-title">Display Settings</div>
+        <div class="config-row">
+          <div class="config-label">Manual Poster List (Optional)</div>
+          <div class="config-input">
+            <div class="poster-list" id="poster-list"></div>
+            <button class="add-btn" id="add-poster">Add Poster</button>
+            <div class="help-text">Only needed if not using auto-load</div>
+          </div>
+        </div>
+        
+        <div class="section-title">Layout & Display</div>
+        
+        <div class="config-row">
+          <div class="config-label">Layout</div>
+          <div class="config-input">
+            <select id="layout">
+              <option value="landscape" ${this._config.layout === 'landscape' ? 'selected' : ''}>Landscape</option>
+              <option value="portrait" ${this._config.layout === 'portrait' ? 'selected' : ''}>Portrait</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="config-row">
+          <div class="config-label">Fullscreen Mode</div>
+          <div class="config-input">
+            <label class="switch">
+              <input type="checkbox" id="fullscreen" ${this._config.fullscreen ? 'checked' : ''}>
+              <span class="slider"></span>
+            </label>
+            <div class="help-text">Display card in fullscreen</div>
+          </div>
+        </div>
+        
+        <div class="config-row">
+          <div class="config-label">Hide Toolbar</div>
+          <div class="config-input">
+            <label class="switch">
+              <input type="checkbox" id="hide_toolbar" ${this._config.hide_toolbar ? 'checked' : ''}>
+              <span class="slider"></span>
+            </label>
+            <div class="help-text">Remove padding for edge-to-edge display</div>
+          </div>
+        </div>
         
         <div class="config-row">
           <div class="config-label">Card Title</div>
@@ -183,6 +245,18 @@ class MoviePosterCardEditor extends HTMLElement {
             />
           </div>
         </div>
+        
+        <div class="config-row">
+          <div class="config-label">Poster Fit</div>
+          <div class="config-input">
+            <select id="poster_fit">
+              <option value="cover" ${this._config.poster_fit === 'cover' ? 'selected' : ''}>Cover</option>
+              <option value="contain" ${this._config.poster_fit === 'contain' ? 'selected' : ''}>Contain</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="section-title">Timing & Animation</div>
         
         <div class="config-row">
           <div class="config-label">Slide Interval (seconds)</div>
@@ -210,17 +284,18 @@ class MoviePosterCardEditor extends HTMLElement {
           </div>
         </div>
         
+        <div class="section-title">Widget Settings</div>
+        
         <div class="config-row">
-          <div class="config-label">Poster Fit</div>
+          <div class="config-label">Widget Style</div>
           <div class="config-input">
-            <select id="poster_fit">
-              <option value="cover" ${this._config.poster_fit === 'cover' ? 'selected' : ''}>Cover</option>
-              <option value="contain" ${this._config.poster_fit === 'contain' ? 'selected' : ''}>Contain</option>
+            <select id="widget_style">
+              <option value="glass" ${this._config.widget_style === 'glass' ? 'selected' : ''}>Glass</option>
+              <option value="solid" ${this._config.widget_style === 'solid' ? 'selected' : ''}>Solid</option>
+              <option value="minimal" ${this._config.widget_style === 'minimal' ? 'selected' : ''}>Minimal</option>
             </select>
           </div>
         </div>
-        
-        <div class="section-title">Optional Features</div>
         
         <div class="config-row">
           <div class="config-label">Show Time</div>
@@ -233,12 +308,16 @@ class MoviePosterCardEditor extends HTMLElement {
         </div>
         
         <div class="config-row">
-          <div class="config-label">Show "Now Playing" Text</div>
+          <div class="config-label">Time Position</div>
           <div class="config-input">
-            <label class="switch">
-              <input type="checkbox" id="show_now_playing_text" ${this._config.show_now_playing_text !== false ? 'checked' : ''}>
-              <span class="slider"></span>
-            </label>
+            <select id="time_position">
+              <option value="top-left" ${this._config.time_position === 'top-left' ? 'selected' : ''}>Top Left</option>
+              <option value="top-right" ${this._config.time_position === 'top-right' ? 'selected' : ''}>Top Right</option>
+              <option value="top-center" ${this._config.time_position === 'top-center' ? 'selected' : ''}>Top Center</option>
+              <option value="bottom-left" ${this._config.time_position === 'bottom-left' ? 'selected' : ''}>Bottom Left</option>
+              <option value="bottom-right" ${this._config.time_position === 'bottom-right' ? 'selected' : ''}>Bottom Right</option>
+              <option value="bottom-center" ${this._config.time_position === 'bottom-center' ? 'selected' : ''}>Bottom Center</option>
+            </select>
           </div>
         </div>
         
@@ -262,6 +341,30 @@ class MoviePosterCardEditor extends HTMLElement {
               placeholder="weather.home"
               ${!this._config.show_weather ? 'disabled' : ''}
             />
+          </div>
+        </div>
+        
+        <div class="config-row">
+          <div class="config-label">Weather Position</div>
+          <div class="config-input">
+            <select id="weather_position" ${!this._config.show_weather ? 'disabled' : ''}>
+              <option value="top-left" ${this._config.weather_position === 'top-left' ? 'selected' : ''}>Top Left</option>
+              <option value="top-right" ${this._config.weather_position === 'top-right' ? 'selected' : ''}>Top Right</option>
+              <option value="top-center" ${this._config.weather_position === 'top-center' ? 'selected' : ''}>Top Center</option>
+              <option value="bottom-left" ${this._config.weather_position === 'bottom-left' ? 'selected' : ''}>Bottom Left</option>
+              <option value="bottom-right" ${this._config.weather_position === 'bottom-right' ? 'selected' : ''}>Bottom Right</option>
+              <option value="bottom-center" ${this._config.weather_position === 'bottom-center' ? 'selected' : ''}>Bottom Center</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="config-row">
+          <div class="config-label">Show "Now Playing" Text</div>
+          <div class="config-input">
+            <label class="switch">
+              <input type="checkbox" id="show_now_playing_text" ${this._config.show_now_playing_text !== false ? 'checked' : ''}>
+              <span class="slider"></span>
+            </label>
           </div>
         </div>
       </div>
@@ -293,7 +396,7 @@ class MoviePosterCardEditor extends HTMLElement {
 
   attachEventListeners() {
     // Simple inputs
-    ['media_player', 'poster_path', 'title', 'weather_entity'].forEach(field => {
+    ['media_player', 'poster_folder', 'title', 'weather_entity'].forEach(field => {
       const input = this.querySelector(`#${field}`);
       if (input) {
         input.addEventListener('input', (e) => {
@@ -315,16 +418,18 @@ class MoviePosterCardEditor extends HTMLElement {
     });
 
     // Select inputs
-    const posterFit = this.querySelector('#poster_fit');
-    if (posterFit) {
-      posterFit.addEventListener('change', (e) => {
-        this._config.poster_fit = e.target.value;
-        this.configChanged(this._config);
-      });
-    }
+    ['poster_fit', 'layout', 'poster_order', 'widget_style', 'time_position', 'weather_position'].forEach(field => {
+      const input = this.querySelector(`#${field}`);
+      if (input) {
+        input.addEventListener('change', (e) => {
+          this._config[field] = e.target.value;
+          this.configChanged(this._config);
+        });
+      }
+    });
 
     // Checkboxes
-    ['show_time', 'show_weather', 'show_now_playing_text'].forEach(field => {
+    ['show_time', 'show_weather', 'show_now_playing_text', 'fullscreen', 'hide_toolbar', 'auto_load_folder'].forEach(field => {
       const input = this.querySelector(`#${field}`);
       if (input) {
         input.addEventListener('change', (e) => {
@@ -333,9 +438,9 @@ class MoviePosterCardEditor extends HTMLElement {
           // Enable/disable weather entity input
           if (field === 'show_weather') {
             const weatherEntity = this.querySelector('#weather_entity');
-            if (weatherEntity) {
-              weatherEntity.disabled = !e.target.checked;
-            }
+            const weatherPosition = this.querySelector('#weather_position');
+            if (weatherEntity) weatherEntity.disabled = !e.target.checked;
+            if (weatherPosition) weatherPosition.disabled = !e.target.checked;
           }
           
           this.configChanged(this._config);

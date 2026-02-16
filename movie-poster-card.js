@@ -5,7 +5,10 @@ class MoviePosterCard extends HTMLElement {
     this._config = {};
     this._hass = null;
     this._slideInterval = null;
+    this._progressInterval = null;
     this._currentPosterIndex = 0;
+    this._posterFiles = [];
+    this._loadingPosters = false;
   }
 
   setConfig(config) {
@@ -16,7 +19,10 @@ class MoviePosterCard extends HTMLElement {
     this._config = {
       media_player: config.media_player,
       poster_path: config.poster_path || '/local/posters',
+      poster_folder: config.poster_folder || '',
       posters: config.posters || [],
+      auto_load_folder: config.auto_load_folder !== false,
+      poster_order: config.poster_order || 'random', // 'random' or 'sequential'
       slide_interval: (config.slide_interval || 30) * 1000,
       show_time: config.show_time !== false,
       show_weather: config.show_weather || false,
@@ -26,31 +32,125 @@ class MoviePosterCard extends HTMLElement {
       transition_duration: config.transition_duration || 1000,
       poster_fit: config.poster_fit || 'cover',
       title: config.title || 'Movie Collection',
+      layout: config.layout || 'landscape', // 'landscape' or 'portrait'
+      fullscreen: config.fullscreen || false,
+      hide_toolbar: config.hide_toolbar || false,
+      time_position: config.time_position || 'top-right',
+      weather_position: config.weather_position || 'top-right',
+      time_style: config.time_style || {},
+      weather_style: config.weather_style || {},
+      widget_style: config.widget_style || 'glass', // 'glass', 'solid', 'minimal'
       ...config
     };
+
+    // Load posters from folder if enabled
+    if (this._config.auto_load_folder && this._config.poster_folder) {
+      this._loadPostersFromFolder();
+    } else if (this._config.posters.length === 0) {
+      console.warn('Movie Poster Card: No posters configured. Please set poster_folder or posters array.');
+    }
 
     this._startSlideshow();
   }
 
   set hass(hass) {
+    const oldHass = this._hass;
     this._hass = hass;
+    
+    // Auto-load posters from folder on first hass set
+    if (this._config.auto_load_folder && this._config.poster_folder && this._posterFiles.length === 0) {
+      this._loadPostersFromFolder();
+    }
+    
+    // Check if media player state changed
+    const oldState = oldHass ? oldHass.states[this._config.media_player] : null;
+    const newState = hass ? hass.states[this._config.media_player] : null;
+    
+    // Start/stop progress updates based on playback state
+    if (newState && newState.state === 'playing') {
+      this._startProgressUpdates();
+    } else {
+      this._stopProgressUpdates();
+    }
+    
     this.render();
+  }
+
+  async _loadPostersFromFolder() {
+    if (this._loadingPosters) return;
+    this._loadingPosters = true;
+
+    try {
+      const folderPath = this._config.poster_folder;
+      const extensions = ['jpg', 'jpeg', 'png', 'webp'];
+      const posterList = [];
+      
+      if (this._config.posters && this._config.posters.length > 0) {
+        posterList.push(...this._config.posters);
+      } else {
+        // Try loading poster1.jpg through poster50.jpg as fallback
+        for (let i = 1; i <= 50; i++) {
+          for (const ext of extensions) {
+            const path = `${folderPath}/poster${i}.${ext}`;
+            posterList.push(path);
+          }
+        }
+      }
+      
+      this._posterFiles = posterList;
+      
+      // Shuffle if random order
+      if (this._config.poster_order === 'random') {
+        this._shuffleArray(this._posterFiles);
+      }
+      
+    } catch (error) {
+      console.error('Error loading posters from folder:', error);
+      this._posterFiles = this._config.posters || [];
+    }
+    
+    this._loadingPosters = false;
+    this.render();
+  }
+
+  _shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
   }
 
   connectedCallback() {
     this._startSlideshow();
+    if (this._config.fullscreen) {
+      this._setupFullscreen();
+    }
+    // Start progress updates if already playing
+    if (this._isMediaPlaying()) {
+      this._startProgressUpdates();
+    }
   }
 
   disconnectedCallback() {
     this._stopSlideshow();
+    this._stopProgressUpdates();
+  }
+
+  _setupFullscreen() {
+    if (this.parentElement) {
+      this.parentElement.style.height = '100vh';
+      this.parentElement.style.width = '100vw';
+    }
   }
 
   _startSlideshow() {
     this._stopSlideshow();
-    if (this._config.posters && this._config.posters.length > 1) {
+    const posterSource = this._posterFiles.length > 0 ? this._posterFiles : this._config.posters;
+    
+    if (posterSource && posterSource.length > 1) {
       this._slideInterval = setInterval(() => {
         if (!this._isMediaPlaying()) {
-          this._currentPosterIndex = (this._currentPosterIndex + 1) % this._config.posters.length;
+          this._currentPosterIndex = (this._currentPosterIndex + 1) % posterSource.length;
           this.render();
         }
       }, this._config.slide_interval);
@@ -61,6 +161,61 @@ class MoviePosterCard extends HTMLElement {
     if (this._slideInterval) {
       clearInterval(this._slideInterval);
       this._slideInterval = null;
+    }
+  }
+
+  _startProgressUpdates() {
+    this._stopProgressUpdates();
+    
+    // Update progress bar every second while playing
+    this._progressInterval = setInterval(() => {
+      if (this._isMediaPlaying()) {
+        this._updateProgressBar();
+      } else {
+        this._stopProgressUpdates();
+      }
+    }, 1000);
+  }
+
+  _stopProgressUpdates() {
+    if (this._progressInterval) {
+      clearInterval(this._progressInterval);
+      this._progressInterval = null;
+    }
+  }
+
+  _updateProgressBar() {
+    const mediaPlayer = this._getMediaPlayerState();
+    if (!mediaPlayer) return;
+
+    const mediaDuration = mediaPlayer.attributes?.media_duration || 0;
+    const mediaPosition = mediaPlayer.attributes?.media_position || 0;
+    const updatedAt = mediaPlayer.attributes?.media_position_updated_at;
+
+    if (mediaDuration > 0 && mediaPosition >= 0 && updatedAt) {
+      // Calculate current position based on last update time
+      const now = new Date().getTime() / 1000;
+      const updatedAtTime = new Date(updatedAt).getTime() / 1000;
+      const elapsedSinceUpdate = now - updatedAtTime;
+      
+      // Only add elapsed time if media is playing (not paused)
+      const currentPosition = mediaPlayer.state === 'playing' 
+        ? Math.min(mediaPosition + elapsedSinceUpdate, mediaDuration)
+        : mediaPosition;
+
+      const progressPercent = (currentPosition / mediaDuration) * 100;
+
+      // Update progress bar and time displays
+      const progressFill = this.shadowRoot.querySelector('.progress-fill');
+      const currentTimeEl = this.shadowRoot.querySelector('.current-time');
+      
+      if (progressFill) {
+        progressFill.style.width = `${progressPercent}%`;
+      }
+      
+      if (currentTimeEl) {
+        currentTimeEl.textContent = this._formatTime(currentPosition);
+      }
     }
   }
 
@@ -81,7 +236,7 @@ class MoviePosterCard extends HTMLElement {
   }
 
   _formatTime(seconds) {
-    if (!seconds) return '0:00';
+    if (!seconds || seconds < 0) return '0:00';
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
@@ -128,6 +283,62 @@ class MoviePosterCard extends HTMLElement {
     return iconMap[condition] || '☀️';
   }
 
+  _getPositionStyles(position) {
+    const positions = {
+      'top-left': 'top: 2rem; left: 2rem;',
+      'top-right': 'top: 2rem; right: 2rem;',
+      'bottom-left': 'bottom: 2rem; left: 2rem;',
+      'bottom-right': 'bottom: 2rem; right: 2rem;',
+      'top-center': 'top: 2rem; left: 50%; transform: translateX(-50%);',
+      'bottom-center': 'bottom: 2rem; left: 50%; transform: translateX(-50%);',
+    };
+    return positions[position] || positions['top-right'];
+  }
+
+  _getWidgetBaseStyles() {
+    const styles = {
+      glass: `
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(30px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      `,
+      solid: `
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      `,
+      minimal: `
+        background: transparent;
+        border: none;
+      `
+    };
+    return styles[this._config.widget_style] || styles.glass;
+  }
+
+  _getUserStyles(styleObj) {
+    return Object.entries(styleObj)
+      .map(([key, value]) => `${key}: ${value};`)
+      .join(' ');
+  }
+
+  _getCalculatedMediaPosition() {
+    const mediaPlayer = this._getMediaPlayerState();
+    if (!mediaPlayer) return 0;
+
+    const mediaPosition = mediaPlayer.attributes?.media_position || 0;
+    const updatedAt = mediaPlayer.attributes?.media_position_updated_at;
+
+    if (!updatedAt || mediaPlayer.state !== 'playing') {
+      return mediaPosition;
+    }
+
+    // Calculate current position based on last update time
+    const now = new Date().getTime() / 1000;
+    const updatedAtTime = new Date(updatedAt).getTime() / 1000;
+    const elapsedSinceUpdate = now - updatedAtTime;
+    
+    return mediaPosition + elapsedSinceUpdate;
+  }
+
   render() {
     if (!this._hass || !this._config) return;
 
@@ -135,12 +346,16 @@ class MoviePosterCard extends HTMLElement {
     const isPlaying = this._isMediaPlaying();
     const weather = this._getWeatherState();
 
-    const posterUrl = this._config.posters[this._currentPosterIndex] || '';
+    const posterSource = this._posterFiles.length > 0 ? this._posterFiles : this._config.posters;
+    const posterUrl = posterSource[this._currentPosterIndex] || '';
     const mediaArt = mediaPlayer?.attributes?.entity_picture || '';
     const mediaTitle = mediaPlayer?.attributes?.media_title || '';
     const mediaDuration = mediaPlayer?.attributes?.media_duration || 0;
-    const mediaPosition = mediaPlayer?.attributes?.media_position || 0;
-    const progressPercent = mediaDuration > 0 ? (mediaPosition / mediaDuration) * 100 : 0;
+    const mediaPosition = this._getCalculatedMediaPosition();
+    const progressPercent = mediaDuration > 0 ? Math.min((mediaPosition / mediaDuration) * 100, 100) : 0;
+
+    const isLandscape = this._config.layout === 'landscape';
+    const isPortrait = this._config.layout === 'portrait';
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -158,7 +373,14 @@ class MoviePosterCard extends HTMLElement {
           height: 100%;
           background: #000;
           overflow: hidden;
+          ${this._config.fullscreen ? 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;' : ''}
         }
+
+        ${this._config.hide_toolbar ? `
+          :host {
+            margin: -8px;
+          }
+        ` : ''}
 
         .background {
           position: absolute;
@@ -166,7 +388,7 @@ class MoviePosterCard extends HTMLElement {
           left: 0;
           width: 100%;
           height: 100%;
-          background-size: cover;
+          background-size: ${this._config.poster_fit};
           background-position: center;
           transition: opacity ${this._config.transition_duration}ms ease-in-out,
                       transform ${this._config.transition_duration}ms ease-in-out;
@@ -211,7 +433,7 @@ class MoviePosterCard extends HTMLElement {
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          padding: 2rem;
+          padding: ${this._config.hide_toolbar ? '1rem' : '2rem'};
           box-sizing: border-box;
           z-index: 10;
         }
@@ -222,6 +444,7 @@ class MoviePosterCard extends HTMLElement {
           align-items: flex-start;
           opacity: ${isPlaying ? 1 : 0.7};
           transition: opacity 0.5s ease;
+          position: relative;
         }
 
         .now-playing {
@@ -240,18 +463,26 @@ class MoviePosterCard extends HTMLElement {
           transition: opacity 0.5s ease, transform 0.5s ease;
         }
 
-        .info-cluster {
-          display: flex;
-          gap: 1rem;
-          align-items: center;
-        }
-
-        .time-widget, .weather-widget {
-          background: rgba(255, 255, 255, 0.08);
-          backdrop-filter: blur(30px);
+        .time-widget {
+          position: fixed;
+          ${this._getPositionStyles(this._config.time_position)}
+          ${this._getWidgetBaseStyles()}
           padding: 0.6rem 1.2rem;
           border-radius: 18px;
-          border: 1px solid rgba(255, 255, 255, 0.15);
+          font-size: 0.95rem;
+          color: rgba(255, 255, 255, 0.95);
+          font-weight: 500;
+          letter-spacing: 0.3px;
+          z-index: 100;
+          ${this._getUserStyles(this._config.time_style)}
+        }
+
+        .weather-widget {
+          position: fixed;
+          ${this._getPositionStyles(this._config.weather_position)}
+          ${this._getWidgetBaseStyles()}
+          padding: 0.6rem 1.2rem;
+          border-radius: 18px;
           font-size: 0.95rem;
           color: rgba(255, 255, 255, 0.95);
           font-weight: 500;
@@ -259,6 +490,8 @@ class MoviePosterCard extends HTMLElement {
           display: flex;
           align-items: center;
           gap: 0.5rem;
+          z-index: 100;
+          ${this._getUserStyles(this._config.weather_style)}
         }
 
         .weather-icon {
@@ -276,7 +509,7 @@ class MoviePosterCard extends HTMLElement {
         }
 
         .media-title {
-          font-size: 2.5rem;
+          font-size: ${isPortrait ? '2rem' : '2.5rem'};
           font-weight: 700;
           color: #fff;
           margin: 0 0 0.5rem 0;
@@ -346,6 +579,26 @@ class MoviePosterCard extends HTMLElement {
           text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
         }
 
+        ${isPortrait ? `
+          .overlay {
+            padding: 1.5rem;
+          }
+          
+          .media-title {
+            font-size: 1.8rem;
+          }
+          
+          .bottom-section {
+            max-width: 100%;
+          }
+        ` : ''}
+
+        ${isLandscape ? `
+          .media-info {
+            max-width: 70%;
+          }
+        ` : ''}
+
         @media (max-width: 768px) {
           .media-title {
             font-size: 1.8rem;
@@ -353,6 +606,11 @@ class MoviePosterCard extends HTMLElement {
           
           .overlay {
             padding: 1.5rem;
+          }
+          
+          .time-widget, .weather-widget {
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
           }
         }
 
@@ -366,30 +624,26 @@ class MoviePosterCard extends HTMLElement {
             transform: translateY(0);
           }
         }
-
-        .animate-in {
-          animation: slideIn 0.8s ease;
-        }
       </style>
 
       <div class="container">
         <div class="background poster"></div>
         <div class="background media"></div>
         
+        ${this._config.show_time ? `
+          <div class="time-widget">${this._getCurrentTime()}</div>
+        ` : ''}
+        
+        ${this._config.show_weather && weather ? `
+          <div class="weather-widget">
+            <span class="weather-icon">${this._getWeatherIcon(weather.state)}</span>
+            <span>${Math.round(weather.attributes.temperature)}°</span>
+          </div>
+        ` : ''}
+        
         <div class="overlay">
           <div class="top-bar">
             <div class="now-playing">Now Playing</div>
-            <div class="info-cluster">
-              ${this._config.show_time ? `
-                <div class="time-widget">${this._getCurrentTime()}</div>
-              ` : ''}
-              ${this._config.show_weather && weather ? `
-                <div class="weather-widget">
-                  <span class="weather-icon">${this._getWeatherIcon(weather.state)}</span>
-                  <span>${Math.round(weather.attributes.temperature)}°</span>
-                </div>
-              ` : ''}
-            </div>
           </div>
 
           <div class="bottom-section">
@@ -404,7 +658,7 @@ class MoviePosterCard extends HTMLElement {
             ${mediaDuration > 0 ? `
               <div class="progress-container">
                 <div class="progress-time">
-                  <span>${this._formatTime(mediaPosition)}</span>
+                  <span class="current-time">${this._formatTime(mediaPosition)}</span>
                   <span>${this._formatTime(mediaDuration)}</span>
                 </div>
                 <div class="progress-bar">
@@ -425,7 +679,7 @@ class MoviePosterCard extends HTMLElement {
   }
 
   getCardSize() {
-    return 5;
+    return this._config.fullscreen ? 0 : 5;
   }
 
   static getConfigElement() {
@@ -436,12 +690,21 @@ class MoviePosterCard extends HTMLElement {
     return {
       media_player: 'media_player.apple_tv',
       poster_path: '/local/posters',
+      poster_folder: '/local/posters',
+      auto_load_folder: true,
+      poster_order: 'random',
       posters: [],
       slide_interval: 30,
       show_time: true,
       show_weather: false,
       weather_entity: '',
-      title: 'Movie Collection'
+      title: 'Movie Collection',
+      layout: 'landscape',
+      fullscreen: false,
+      hide_toolbar: false,
+      time_position: 'top-right',
+      weather_position: 'top-right',
+      widget_style: 'glass'
     };
   }
 }
@@ -454,5 +717,5 @@ window.customCards.push({
   name: 'Movie Poster Card',
   description: 'Display movie posters with Apple TV integration',
   preview: true,
-  documentationURL: 'https://github.com/ursnirmalt/movie-poster-card',
+  documentationURL: 'https://github.com/yourusername/movie-poster-card',
 });

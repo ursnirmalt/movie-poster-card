@@ -1,9 +1,21 @@
-# Example configurations for Movie Poster Card
+# Example configurations for Movie Poster Card v2.0
+# New Features: Auto-load posters from folder, Portrait/Landscape layouts, Fullscreen mode,
+# Widget positioning & styling, Hide toolbar option
 
 # ============================================
-# BASIC CONFIGURATION
+# BASIC CONFIGURATION (Auto-load from folder)
 # ============================================
-basic_example:
+basic_auto_load:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_folder: /local/posters
+  auto_load_folder: true
+  poster_order: random
+
+# ============================================
+# BASIC CONFIGURATION (Manual poster list)
+# ============================================
+basic_manual:
   type: custom:movie-poster-card
   media_player: media_player.apple_tv
   posters:
@@ -17,142 +29,258 @@ basic_example:
 full_featured:
   type: custom:movie-poster-card
   media_player: media_player.apple_tv
-  poster_path: /local/posters
-  posters:
-    - /local/posters/action/mad_max_fury_road.jpg
-    - /local/posters/action/john_wick.jpg
-    - /local/posters/scifi/blade_runner_2049.jpg
-    - /local/posters/scifi/arrival.jpg
-    - /local/posters/scifi/interstellar.jpg
-    - /local/posters/drama/1917.jpg
+  poster_folder: /local/posters
+  auto_load_folder: true
+  poster_order: random
   slide_interval: 30
+  transition_duration: 1000
+  layout: landscape
+  fullscreen: false
+  hide_toolbar: false
   show_time: true
   show_weather: true
   weather_entity: weather.home
   show_now_playing_text: true
-  idle_timeout: 300
-  transition_duration: 1000
-  poster_fit: cover
   title: "Movie Collection"
+  poster_fit: cover
+  widget_style: glass
+  time_position: top-right
+  weather_position: top-right
 
 # ============================================
-# WALL PANEL CONFIGURATION
+# WALL PANEL CONFIGURATION (Fullscreen)
 # ============================================
-wall_panel:
+wall_panel_fullscreen:
   type: custom:movie-poster-card
-  media_player: media_player.living_room_apple_tv
-  posters:
-    - /local/posters/classics/godfather.jpg
-    - /local/posters/classics/pulp_fiction.jpg
-    - /local/posters/classics/shawshank.jpg
-    - /local/posters/modern/dune.jpg
-    - /local/posters/modern/everything_everywhere.jpg
+  media_player: media_player.wall_tablet
+  poster_folder: /local/posters
+  auto_load_folder: true
+  poster_order: random
   slide_interval: 25
+  layout: landscape
+  fullscreen: true
+  hide_toolbar: true
   show_time: true
   show_weather: true
   weather_entity: weather.home
+  time_position: top-left
+  weather_position: top-right
+  widget_style: glass
   title: "Home Cinema"
-  transition_duration: 800
 
 # ============================================
-# MINIMAL CONFIGURATION
+# PORTRAIT TABLET CONFIGURATION
 # ============================================
-minimal:
+portrait_tablet:
   type: custom:movie-poster-card
-  media_player: media_player.bedroom_apple_tv
-  posters:
-    - /local/posters/movie1.jpg
-    - /local/posters/movie2.jpg
-  show_time: false
-  show_weather: false
-  show_now_playing_text: false
-  slide_interval: 45
+  media_player: media_player.ipad
+  poster_folder: /local/posters
+  auto_load_folder: true
+  poster_order: sequential
+  layout: portrait
+  show_time: true
+  show_weather: true
+  weather_entity: weather.home
+  time_position: top-center
+  weather_position: bottom-center
+  widget_style: glass
 
 # ============================================
-# HOME THEATER CONFIGURATION
+# HOME THEATER (Minimal Interface)
 # ============================================
-home_theater:
+home_theater_minimal:
   type: custom:movie-poster-card
   media_player: media_player.theater_apple_tv
-  posters:
-    - /local/posters/theater/dune_part_two.jpg
-    - /local/posters/theater/oppenheimer.jpg
-    - /local/posters/theater/top_gun_maverick.jpg
-    - /local/posters/theater/avatar_way_of_water.jpg
-  slide_interval: 20
+  poster_folder: /local/posters/theater
+  auto_load_folder: true
+  poster_order: sequential
+  slide_interval: 45
+  transition_duration: 2000
+  layout: landscape
   show_time: false
   show_weather: false
+  show_now_playing_text: true
   title: "Home Theater"
-  transition_duration: 1200
 
 # ============================================
-# KIDS ROOM CONFIGURATION
+# CUSTOM WIDGET STYLING (Bold & Colorful)
+# ============================================
+custom_styled_widgets:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_folder: /local/posters
+  auto_load_folder: true
+  show_time: true
+  show_weather: true
+  weather_entity: weather.home
+  time_position: top-left
+  weather_position: top-right
+  time_style:
+    font-size: 1.8rem
+    font-weight: 700
+    color: '#FFD700'
+    background: 'rgba(0, 0, 0, 0.9)'
+    border: 3px solid #FFD700
+    border-radius: 30px
+    padding: 1rem 2rem
+  weather_style:
+    font-size: 1.2rem
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    border: none
+    border-radius: 25px
+    padding: 0.8rem 1.5rem
+
+# ============================================
+# MINIMAL STYLE WIDGETS
+# ============================================
+minimal_widgets:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_folder: /local/posters
+  auto_load_folder: true
+  widget_style: minimal
+  show_time: true
+  time_position: bottom-right
+  time_style:
+    font-size: 1.2rem
+    font-weight: 300
+    text-shadow: '0 2px 8px rgba(0, 0, 0, 0.8)'
+
+# ============================================
+# SOLID WIDGET STYLE
+# ============================================
+solid_widgets:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_folder: /local/posters
+  auto_load_folder: true
+  widget_style: solid
+  show_time: true
+  show_weather: true
+  weather_entity: weather.home
+
+# ============================================
+# KIDS ROOM (Colorful & Fun)
 # ============================================
 kids_room:
   type: custom:movie-poster-card
-  media_player: media_player.kids_room_apple_tv
-  posters:
-    - /local/posters/kids/toy_story.jpg
-    - /local/posters/kids/frozen.jpg
-    - /local/posters/kids/moana.jpg
-    - /local/posters/kids/encanto.jpg
-    - /local/posters/kids/spider_verse.jpg
+  media_player: media_player.kids_tv
+  poster_folder: /local/posters/kids
+  auto_load_folder: true
+  poster_order: random
   slide_interval: 15
+  layout: landscape
+  widget_style: solid
   show_time: true
-  show_weather: false
+  time_position: top-left
+  time_style:
+    font-size: 1.5rem
+    font-weight: 700
+    color: '#FF6B6B'
+    background: 'rgba(255, 255, 255, 0.9)'
+    border-radius: 20px
+    padding: 0.8rem 1.5rem
   title: "Kids Movies"
-  transition_duration: 600
 
 # ============================================
-# MULTI-PLAYER CONFIGURATION
+# SEQUENTIAL ORDER (Not Random)
 # ============================================
-# Note: Use multiple cards for multiple media players
-living_room_card:
-  type: custom:movie-poster-card
-  media_player: media_player.living_room_apple_tv
-  posters:
-    - /local/posters/shared/movie1.jpg
-  title: "Living Room"
-
-bedroom_card:
-  type: custom:movie-poster-card
-  media_player: media_player.bedroom_apple_tv
-  posters:
-    - /local/posters/shared/movie1.jpg
-  title: "Bedroom"
-
-# ============================================
-# GENRE-SPECIFIC COLLECTIONS
-# ============================================
-action_movies:
+sequential_order:
   type: custom:movie-poster-card
   media_player: media_player.apple_tv
-  posters:
-    - /local/posters/action/mad_max.jpg
-    - /local/posters/action/john_wick.jpg
-    - /local/posters/action/mission_impossible.jpg
-    - /local/posters/action/die_hard.jpg
+  poster_folder: /local/posters/classics
+  auto_load_folder: true
+  poster_order: sequential
+  slide_interval: 60
+  title: "Classic Collection"
+
+# ============================================
+# FAST ROTATION (Screensaver Mode)
+# ============================================
+screensaver_mode:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_folder: /local/posters
+  auto_load_folder: true
+  poster_order: random
+  slide_interval: 10
+  transition_duration: 500
+  show_time: true
+  show_weather: true
+  weather_entity: weather.home
+  show_now_playing_text: false
+
+# ============================================
+# SLOW ROTATION (Gallery Mode)
+# ============================================
+gallery_mode:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_folder: /local/posters/favorites
+  auto_load_folder: true
+  poster_order: sequential
+  slide_interval: 120
+  transition_duration: 3000
+  title: "Featured Collection"
+
+# ============================================
+# BOTTOM POSITIONED WIDGETS
+# ============================================
+bottom_widgets:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_folder: /local/posters
+  auto_load_folder: true
+  show_time: true
+  show_weather: true
+  weather_entity: weather.home
+  time_position: bottom-left
+  weather_position: bottom-right
+
+# ============================================
+# CENTERED WIDGETS
+# ============================================
+centered_widgets:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_folder: /local/posters
+  auto_load_folder: true
+  show_time: true
+  show_weather: true
+  weather_entity: weather.home
+  time_position: top-center
+  weather_position: bottom-center
+
+# ============================================
+# GENRE-SPECIFIC: ACTION MOVIES
+# ============================================
+action_collection:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_folder: /local/posters/action
+  auto_load_folder: true
+  poster_order: random
   title: "Action Collection"
 
-scifi_movies:
+# ============================================
+# GENRE-SPECIFIC: SCI-FI MOVIES
+# ============================================
+scifi_collection:
   type: custom:movie-poster-card
   media_player: media_player.apple_tv
-  posters:
-    - /local/posters/scifi/blade_runner.jpg
-    - /local/posters/scifi/interstellar.jpg
-    - /local/posters/scifi/arrival.jpg
-    - /local/posters/scifi/matrix.jpg
+  poster_folder: /local/posters/scifi
+  auto_load_folder: true
+  poster_order: random
   title: "Sci-Fi Collection"
 
 # ============================================
 # PLEX INTEGRATION
 # ============================================
-plex_configuration:
+plex_setup:
   type: custom:movie-poster-card
   media_player: media_player.plex_player
-  posters:
-    - /local/posters/recently_added/movie1.jpg
-    - /local/posters/recently_added/movie2.jpg
+  poster_folder: /local/posters/plex
+  auto_load_folder: true
   show_time: true
   show_weather: true
   weather_entity: weather.home
@@ -161,46 +289,90 @@ plex_configuration:
 # ============================================
 # JELLYFIN INTEGRATION
 # ============================================
-jellyfin_configuration:
+jellyfin_setup:
   type: custom:movie-poster-card
   media_player: media_player.jellyfin
-  posters:
-    - /local/posters/jellyfin/collection1.jpg
-    - /local/posters/jellyfin/collection2.jpg
-  title: "Jellyfin"
+  poster_folder: /local/posters/jellyfin
+  auto_load_folder: true
+  title: "Jellyfin Library"
 
 # ============================================
-# FAST ROTATION (SCREENSAVER MODE)
+# LIVING ROOM SETUP
 # ============================================
-screensaver:
+living_room:
   type: custom:movie-poster-card
-  media_player: media_player.apple_tv
-  posters:
-    - /local/posters/all/movie1.jpg
-    - /local/posters/all/movie2.jpg
-    - /local/posters/all/movie3.jpg
-    - /local/posters/all/movie4.jpg
-    - /local/posters/all/movie5.jpg
-    - /local/posters/all/movie6.jpg
-    - /local/posters/all/movie7.jpg
-    - /local/posters/all/movie8.jpg
-  slide_interval: 10
+  media_player: media_player.living_room_apple_tv
+  poster_folder: /local/posters/family
+  auto_load_folder: true
+  poster_order: random
+  layout: landscape
   show_time: true
   show_weather: true
   weather_entity: weather.home
-  show_now_playing_text: false
-  transition_duration: 500
+  title: "Family Room"
 
 # ============================================
-# SLOW ROTATION (GALLERY MODE)
+# BEDROOM SETUP
 # ============================================
-gallery:
+bedroom:
+  type: custom:movie-poster-card
+  media_player: media_player.bedroom_apple_tv
+  poster_folder: /local/posters/relaxing
+  auto_load_folder: true
+  poster_order: sequential
+  slide_interval: 60
+  show_time: true
+  title: "Bedroom"
+
+# ============================================
+# CONTAIN FIT (Show full poster)
+# ============================================
+poster_contain:
   type: custom:movie-poster-card
   media_player: media_player.apple_tv
-  posters:
-    - /local/posters/favorites/movie1.jpg
-    - /local/posters/favorites/movie2.jpg
-    - /local/posters/favorites/movie3.jpg
-  slide_interval: 60
-  transition_duration: 2000
-  title: "Featured Collection"
+  poster_folder: /local/posters
+  auto_load_folder: true
+  poster_fit: contain
+
+# ============================================
+# KIOSK MODE (No toolbars, fullscreen)
+# ============================================
+kiosk_mode:
+  type: custom:movie-poster-card
+  media_player: media_player.kiosk_display
+  poster_folder: /local/posters
+  auto_load_folder: true
+  fullscreen: true
+  hide_toolbar: true
+  show_now_playing_text: false
+  poster_order: random
+  slide_interval: 20
+
+# ============================================
+# MULTI-ROOM EXAMPLE
+# Note: Create separate cards for each room
+# ============================================
+
+# Living Room Card
+living_room_card:
+  type: custom:movie-poster-card
+  media_player: media_player.living_room_tv
+  poster_folder: /local/posters/family
+  auto_load_folder: true
+  title: "Living Room"
+
+# Theater Card
+theater_card:
+  type: custom:movie-poster-card
+  media_player: media_player.theater_tv
+  poster_folder: /local/posters/theater
+  auto_load_folder: true
+  title: "Home Theater"
+
+# Bedroom Card
+bedroom_card:
+  type: custom:movie-poster-card
+  media_player: media_player.bedroom_tv
+  poster_folder: /local/posters/relaxing
+  auto_load_folder: true
+  title: "Bedroom"
