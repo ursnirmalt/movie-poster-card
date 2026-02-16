@@ -3,9 +3,33 @@
 # Widget positioning & styling, Hide toolbar option
 
 # ============================================
-# BASIC CONFIGURATION (Auto-load from folder)
+# BASIC CONFIGURATION (Auto-load from /media folder)
 # ============================================
-basic_auto_load:
+basic_media_folder:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_folder: /media/posters
+  auto_load_folder: true
+  poster_order: random
+
+# ============================================
+# BASIC CONFIGURATION (Manual list from /media)
+# RECOMMENDED for /media folders
+# ============================================
+basic_media_manual:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  posters:
+    - /media/posters/inception.jpg
+    - /media/posters/interstellar.jpg
+    - /media/posters/tenet.jpg
+    - /media/posters/dunkirk.jpg
+  poster_order: random
+
+# ============================================
+# BASIC CONFIGURATION (Auto-load from /local folder)
+# ============================================
+basic_local_folder:
   type: custom:movie-poster-card
   media_player: media_player.apple_tv
   poster_folder: /local/posters
@@ -13,7 +37,7 @@ basic_auto_load:
   poster_order: random
 
 # ============================================
-# BASIC CONFIGURATION (Manual poster list)
+# BASIC CONFIGURATION (Manual poster list from /local)
 # ============================================
 basic_manual:
   type: custom:movie-poster-card

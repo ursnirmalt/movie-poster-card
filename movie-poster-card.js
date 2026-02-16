@@ -19,7 +19,7 @@ class MoviePosterCard extends HTMLElement {
     this._config = {
       media_player: config.media_player,
       poster_path: config.poster_path || '/local/posters',
-      poster_folder: config.poster_folder || '',
+      poster_folder: config.poster_folder || '/media/posters',
       posters: config.posters || [],
       auto_load_folder: config.auto_load_folder !== false,
       poster_order: config.poster_order || 'random', // 'random' or 'sequential'
@@ -81,18 +81,87 @@ class MoviePosterCard extends HTMLElement {
     this._loadingPosters = true;
 
     try {
+      // If manual posters list is provided, use it directly
+      if (this._config.posters && this._config.posters.length > 0) {
+        this._posterFiles = [...this._config.posters];
+        
+        // Shuffle if random order
+        if (this._config.poster_order === 'random') {
+          this._shuffleArray(this._posterFiles);
+        }
+        
+        this._loadingPosters = false;
+        this.render();
+        return;
+      }
+
+      // Auto-discover posters from folder
       const folderPath = this._config.poster_folder;
+      
+      // Try to use the media browser API to list files
+      try {
+        const mediaPath = folderPath.replace('/media/', '').replace('/local/', 'www/');
+        const result = await this._hass.callWS({
+          type: 'media_source/browse_media',
+          media_content_id: `media-source://media_source/${mediaPath}`
+        });
+
+        if (result && result.children) {
+          const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+          const posterList = result.children
+            .filter(child => {
+              const ext = child.title.toLowerCase().substring(child.title.lastIndexOf('.'));
+              return imageExtensions.includes(ext);
+            })
+            .map(child => {
+              // Convert media content ID to accessible URL
+              if (folderPath.startsWith('/media/')) {
+                return `/media/${mediaPath}/${child.title}`;
+              } else {
+                return `/local/${child.title}`;
+              }
+            });
+
+          if (posterList.length > 0) {
+            this._posterFiles = posterList;
+            
+            // Shuffle if random order
+            if (this._config.poster_order === 'random') {
+              this._shuffleArray(this._posterFiles);
+            }
+            
+            this._loadingPosters = false;
+            this.render();
+            return;
+          }
+        }
+      } catch (apiError) {
+        console.log('Media browser API not available, using fallback method:', apiError);
+      }
+
+      // Fallback: Try common naming patterns
       const extensions = ['jpg', 'jpeg', 'png', 'webp'];
       const posterList = [];
       
-      if (this._config.posters && this._config.posters.length > 0) {
-        posterList.push(...this._config.posters);
-      } else {
-        // Try loading poster1.jpg through poster50.jpg as fallback
-        for (let i = 1; i <= 50; i++) {
+      // Try numbered posters: poster1.jpg, poster2.jpg, etc.
+      for (let i = 1; i <= 100; i++) {
+        for (const ext of extensions) {
+          posterList.push(`${folderPath}/poster${i}.${ext}`);
+        }
+      }
+      
+      // Try common movie poster naming patterns
+      const commonNames = [
+        'poster', 'cover', 'artwork', 'thumb', 'thumbnail',
+        'movie', 'film', 'cinema', 'image', 'photo'
+      ];
+      
+      for (const name of commonNames) {
+        for (let i = 1; i <= 20; i++) {
           for (const ext of extensions) {
-            const path = `${folderPath}/poster${i}.${ext}`;
-            posterList.push(path);
+            posterList.push(`${folderPath}/${name}${i}.${ext}`);
+            posterList.push(`${folderPath}/${name}_${i}.${ext}`);
+            posterList.push(`${folderPath}/${name}-${i}.${ext}`);
           }
         }
       }
@@ -690,7 +759,7 @@ class MoviePosterCard extends HTMLElement {
     return {
       media_player: 'media_player.apple_tv',
       poster_path: '/local/posters',
-      poster_folder: '/local/posters',
+      poster_folder: '/media/posters',
       auto_load_folder: true,
       poster_order: 'random',
       posters: [],
@@ -717,5 +786,5 @@ window.customCards.push({
   name: 'Movie Poster Card',
   description: 'Display movie posters with Apple TV integration',
   preview: true,
-  documentationURL: 'https://github.com/ursnirmalt/movie-poster-card',
+  documentationURL: 'https://github.com/yourusername/movie-poster-card',
 });

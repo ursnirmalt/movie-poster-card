@@ -37,7 +37,7 @@ A custom HACS card that displays movie posters with seamless Apple TV (or any me
 
 1. Open HACS → Frontend
 2. Click ⋮ → Custom repositories
-3. Add: `https://github.com/ursnirmalt/movie-poster-card`
+3. Add: `https://github.com/yourusername/movie-poster-card`
 4. Install "Movie Poster Card"
 5. Restart Home Assistant
 
@@ -104,6 +104,18 @@ That's it! The card will automatically load all images from `/config/www/posters
 
 ### Option 1: Auto-Load from Folder (Recommended)
 
+**For /media folder:**
+1. Place posters in `/config/media/posters/`
+2. Configure:
+```yaml
+type: custom:movie-poster-card
+media_player: media_player.apple_tv
+poster_folder: /media/posters
+auto_load_folder: true
+poster_order: random
+```
+
+**For /local folder (www):**
 1. Create folder: `/config/www/posters/`
 2. Add your poster images
 3. Configure:
@@ -117,16 +129,27 @@ poster_order: random
 
 **Supported formats:** JPG, JPEG, PNG, WebP
 
-### Option 2: Manual List
+### Option 2: Manual List (Most Reliable for /media)
+
+For the best reliability with `/media/` folders, explicitly list your posters:
 
 ```yaml
 type: custom:movie-poster-card
 media_player: media_player.apple_tv
 posters:
-  - /local/posters/inception.jpg
-  - /local/posters/interstellar.jpg
-  - /local/posters/tenet.jpg
+  - /media/posters/inception.jpg
+  - /media/posters/interstellar.jpg
+  - /media/posters/tenet.jpg
+  - /media/posters/dunkirk.jpg
+poster_order: random
 ```
+
+### Understanding File Paths
+
+- **`/media/posters`** = Files in `/config/media/posters/`
+- **`/local/posters`** = Files in `/config/www/posters/`
+
+**Important:** Use `/media/` or `/local/` in your config, NOT `/config/`
 
 ### Organize by Genre
 
@@ -214,6 +237,7 @@ time_position: bottom-right
 ## 📚 Documentation
 
 - **[Quick Start Guide](QUICKSTART.md)** - Get up and running in 5 minutes
+- **[Media Folder Setup](MEDIA_FOLDER_SETUP.md)** - Complete guide for /media/posters
 - **[Installation Guide](INSTALLATION.md)** - Detailed setup instructions
 - **[Styling Guide](STYLING.md)** - Widget customization and positioning
 - **[Advanced Guide](ADVANCED.md)** - Advanced features and tips
@@ -327,18 +351,37 @@ See [STYLING.md](STYLING.md) for complete guide.
 
 ## 🐛 Troubleshooting
 
+### Posters Not Loading from /media
+
+**Using /media/posters folder?** The most reliable method is to manually list your posters:
+
+```yaml
+type: custom:movie-poster-card
+media_player: media_player.apple_tv
+posters:
+  - /media/posters/poster1.jpg
+  - /media/posters/poster2.jpg
+  - /media/posters/poster3.jpg
+```
+
+See [MEDIA_FOLDER_SETUP.md](MEDIA_FOLDER_SETUP.md) for complete guide.
+
 ### Posters Not Loading
 
 **Auto-load not working?**
 - Ensure `auto_load_folder` is `true`
 - Check `poster_folder` path is correct
-- Verify images exist in `/config/www/posters/`
+  - Use `/media/posters` for `/config/media/posters/`
+  - Use `/local/posters` for `/config/www/posters/`
+- Verify images exist in the folder
+- Try manual poster list (most reliable for /media)
 - Supported formats: JPG, JPEG, PNG, WebP
 
 **Manual list not working?**
 - Check file paths (case-sensitive!)
-- Use `/local/` prefix
+- Use `/media/` or `/local/` prefix (NOT `/config/`)
 - Verify files exist
+- Test single poster first
 
 ### Media Player Not Updating
 
