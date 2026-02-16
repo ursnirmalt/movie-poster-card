@@ -22,7 +22,7 @@ A custom HACS card that displays movie posters with seamless Apple TV (or any me
 1. Open HACS in Home Assistant
 2. Go to "Frontend"
 3. Click the three dots menu (top right) and select "Custom repositories"
-4. Add this repository URL: `https://github.com/yourusername/movie-poster-card`
+4. Add this repository URL: `https://github.com/ursnirmalt/movie-poster-card`
 5. Category: `Lovelace`
 6. Click "Add"
 7. Find "Movie Poster Card" in the list and click "Install"
