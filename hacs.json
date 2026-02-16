@@ -1,0 +1,7 @@
+{
+  "name": "Movie Poster Card",
+  "render_readme": true,
+  "filename": "movie-poster-card.js",
+  "country": ["US", "GB", "CA", "AU", "NZ"],
+  "homeassistant": "2023.1.0"
+}

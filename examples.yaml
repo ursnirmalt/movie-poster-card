@@ -1,0 +1,206 @@
+# Example configurations for Movie Poster Card
+
+# ============================================
+# BASIC CONFIGURATION
+# ============================================
+basic_example:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  posters:
+    - /local/posters/inception.jpg
+    - /local/posters/interstellar.jpg
+    - /local/posters/tenet.jpg
+
+# ============================================
+# FULL FEATURED CONFIGURATION
+# ============================================
+full_featured:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  poster_path: /local/posters
+  posters:
+    - /local/posters/action/mad_max_fury_road.jpg
+    - /local/posters/action/john_wick.jpg
+    - /local/posters/scifi/blade_runner_2049.jpg
+    - /local/posters/scifi/arrival.jpg
+    - /local/posters/scifi/interstellar.jpg
+    - /local/posters/drama/1917.jpg
+  slide_interval: 30
+  show_time: true
+  show_weather: true
+  weather_entity: weather.home
+  show_now_playing_text: true
+  idle_timeout: 300
+  transition_duration: 1000
+  poster_fit: cover
+  title: "Movie Collection"
+
+# ============================================
+# WALL PANEL CONFIGURATION
+# ============================================
+wall_panel:
+  type: custom:movie-poster-card
+  media_player: media_player.living_room_apple_tv
+  posters:
+    - /local/posters/classics/godfather.jpg
+    - /local/posters/classics/pulp_fiction.jpg
+    - /local/posters/classics/shawshank.jpg
+    - /local/posters/modern/dune.jpg
+    - /local/posters/modern/everything_everywhere.jpg
+  slide_interval: 25
+  show_time: true
+  show_weather: true
+  weather_entity: weather.home
+  title: "Home Cinema"
+  transition_duration: 800
+
+# ============================================
+# MINIMAL CONFIGURATION
+# ============================================
+minimal:
+  type: custom:movie-poster-card
+  media_player: media_player.bedroom_apple_tv
+  posters:
+    - /local/posters/movie1.jpg
+    - /local/posters/movie2.jpg
+  show_time: false
+  show_weather: false
+  show_now_playing_text: false
+  slide_interval: 45
+
+# ============================================
+# HOME THEATER CONFIGURATION
+# ============================================
+home_theater:
+  type: custom:movie-poster-card
+  media_player: media_player.theater_apple_tv
+  posters:
+    - /local/posters/theater/dune_part_two.jpg
+    - /local/posters/theater/oppenheimer.jpg
+    - /local/posters/theater/top_gun_maverick.jpg
+    - /local/posters/theater/avatar_way_of_water.jpg
+  slide_interval: 20
+  show_time: false
+  show_weather: false
+  title: "Home Theater"
+  transition_duration: 1200
+
+# ============================================
+# KIDS ROOM CONFIGURATION
+# ============================================
+kids_room:
+  type: custom:movie-poster-card
+  media_player: media_player.kids_room_apple_tv
+  posters:
+    - /local/posters/kids/toy_story.jpg
+    - /local/posters/kids/frozen.jpg
+    - /local/posters/kids/moana.jpg
+    - /local/posters/kids/encanto.jpg
+    - /local/posters/kids/spider_verse.jpg
+  slide_interval: 15
+  show_time: true
+  show_weather: false
+  title: "Kids Movies"
+  transition_duration: 600
+
+# ============================================
+# MULTI-PLAYER CONFIGURATION
+# ============================================
+# Note: Use multiple cards for multiple media players
+living_room_card:
+  type: custom:movie-poster-card
+  media_player: media_player.living_room_apple_tv
+  posters:
+    - /local/posters/shared/movie1.jpg
+  title: "Living Room"
+
+bedroom_card:
+  type: custom:movie-poster-card
+  media_player: media_player.bedroom_apple_tv
+  posters:
+    - /local/posters/shared/movie1.jpg
+  title: "Bedroom"
+
+# ============================================
+# GENRE-SPECIFIC COLLECTIONS
+# ============================================
+action_movies:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  posters:
+    - /local/posters/action/mad_max.jpg
+    - /local/posters/action/john_wick.jpg
+    - /local/posters/action/mission_impossible.jpg
+    - /local/posters/action/die_hard.jpg
+  title: "Action Collection"
+
+scifi_movies:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  posters:
+    - /local/posters/scifi/blade_runner.jpg
+    - /local/posters/scifi/interstellar.jpg
+    - /local/posters/scifi/arrival.jpg
+    - /local/posters/scifi/matrix.jpg
+  title: "Sci-Fi Collection"
+
+# ============================================
+# PLEX INTEGRATION
+# ============================================
+plex_configuration:
+  type: custom:movie-poster-card
+  media_player: media_player.plex_player
+  posters:
+    - /local/posters/recently_added/movie1.jpg
+    - /local/posters/recently_added/movie2.jpg
+  show_time: true
+  show_weather: true
+  weather_entity: weather.home
+  title: "Plex Library"
+
+# ============================================
+# JELLYFIN INTEGRATION
+# ============================================
+jellyfin_configuration:
+  type: custom:movie-poster-card
+  media_player: media_player.jellyfin
+  posters:
+    - /local/posters/jellyfin/collection1.jpg
+    - /local/posters/jellyfin/collection2.jpg
+  title: "Jellyfin"
+
+# ============================================
+# FAST ROTATION (SCREENSAVER MODE)
+# ============================================
+screensaver:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  posters:
+    - /local/posters/all/movie1.jpg
+    - /local/posters/all/movie2.jpg
+    - /local/posters/all/movie3.jpg
+    - /local/posters/all/movie4.jpg
+    - /local/posters/all/movie5.jpg
+    - /local/posters/all/movie6.jpg
+    - /local/posters/all/movie7.jpg
+    - /local/posters/all/movie8.jpg
+  slide_interval: 10
+  show_time: true
+  show_weather: true
+  weather_entity: weather.home
+  show_now_playing_text: false
+  transition_duration: 500
+
+# ============================================
+# SLOW ROTATION (GALLERY MODE)
+# ============================================
+gallery:
+  type: custom:movie-poster-card
+  media_player: media_player.apple_tv
+  posters:
+    - /local/posters/favorites/movie1.jpg
+    - /local/posters/favorites/movie2.jpg
+    - /local/posters/favorites/movie3.jpg
+  slide_interval: 60
+  transition_duration: 2000
+  title: "Featured Collection"
