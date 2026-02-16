@@ -717,5 +717,5 @@ window.customCards.push({
   name: 'Movie Poster Card',
   description: 'Display movie posters with Apple TV integration',
   preview: true,
-  documentationURL: 'https://github.com/yourusername/movie-poster-card',
+  documentationURL: 'https://github.com/ursnirmalt/movie-poster-card',
 });
