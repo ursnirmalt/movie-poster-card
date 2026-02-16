@@ -18,55 +18,44 @@ class MoviePosterCard extends HTMLElement {
 
     this._config = {
       media_player: config.media_player,
-      poster_path: config.poster_path || '/local/posters',
-      poster_folder: config.poster_folder || '/media/posters',
+      poster_path: config.poster_path || 'media-source://media_source/local/posters',
       posters: config.posters || [],
-      auto_load_folder: config.auto_load_folder !== false,
-      poster_order: config.poster_order || 'random', // 'random' or 'sequential'
+      poster_order: config.poster_order || 'random',
       slide_interval: (config.slide_interval || 30) * 1000,
       show_time: config.show_time !== false,
       show_weather: config.show_weather || false,
       weather_entity: config.weather_entity || '',
       show_now_playing_text: config.show_now_playing_text !== false,
-      idle_timeout: (config.idle_timeout || 300) * 1000,
       transition_duration: config.transition_duration || 1000,
       poster_fit: config.poster_fit || 'cover',
       title: config.title || 'Movie Collection',
-      layout: config.layout || 'landscape', // 'landscape' or 'portrait'
+      layout: config.layout || 'landscape',
       fullscreen: config.fullscreen || false,
       hide_toolbar: config.hide_toolbar || false,
       time_position: config.time_position || 'top-right',
       weather_position: config.weather_position || 'top-right',
       time_style: config.time_style || {},
       weather_style: config.weather_style || {},
-      widget_style: config.widget_style || 'glass', // 'glass', 'solid', 'minimal'
+      widget_style: config.widget_style || 'glass',
       ...config
     };
 
-    // Load posters from folder if enabled
-    if (this._config.auto_load_folder && this._config.poster_folder) {
-      this._loadPostersFromFolder();
-    } else if (this._config.posters.length === 0) {
-      console.warn('Movie Poster Card: No posters configured. Please set poster_folder or posters array.');
-    }
-
-    this._startSlideshow();
+    this._loadPosters();
   }
 
   set hass(hass) {
     const oldHass = this._hass;
     this._hass = hass;
     
-    // Auto-load posters from folder on first hass set
-    if (this._config.auto_load_folder && this._config.poster_folder && this._posterFiles.length === 0) {
-      this._loadPostersFromFolder();
+    // Load posters on first hass set
+    if (!oldHass && this._posterFiles.length === 0) {
+      this._loadPosters();
     }
     
     // Check if media player state changed
     const oldState = oldHass ? oldHass.states[this._config.media_player] : null;
     const newState = hass ? hass.states[this._config.media_player] : null;
     
-    // Start/stop progress updates based on playback state
     if (newState && newState.state === 'playing') {
       this._startProgressUpdates();
     } else {
@@ -76,110 +65,87 @@ class MoviePosterCard extends HTMLElement {
     this.render();
   }
 
-  async _loadPostersFromFolder() {
+  async _loadPosters() {
     if (this._loadingPosters) return;
     this._loadingPosters = true;
 
     try {
-      // If manual posters list is provided, use it directly
+      // If manual posters list provided, use it
       if (this._config.posters && this._config.posters.length > 0) {
         this._posterFiles = [...this._config.posters];
-        
-        // Shuffle if random order
         if (this._config.poster_order === 'random') {
           this._shuffleArray(this._posterFiles);
         }
-        
         this._loadingPosters = false;
+        this._startSlideshow();
         this.render();
         return;
       }
 
-      // Auto-discover posters from folder
-      const folderPath = this._config.poster_folder;
-      
-      // Try to use the media browser API to list files
-      try {
-        const mediaPath = folderPath.replace('/media/', '').replace('/local/', 'www/');
-        const result = await this._hass.callWS({
-          type: 'media_source/browse_media',
-          media_content_id: `media-source://media_source/${mediaPath}`
-        });
+      // Use media browser API like wall-panel does
+      if (this._hass) {
+        const mediaContentId = this._config.poster_path;
+        
+        try {
+          const mediaItems = await this._hass.callWS({
+            type: 'media_source/browse_media',
+            media_content_id: mediaContentId
+          });
 
-        if (result && result.children) {
-          const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-          const posterList = result.children
-            .filter(child => {
-              const ext = child.title.toLowerCase().substring(child.title.lastIndexOf('.'));
-              return imageExtensions.includes(ext);
-            })
-            .map(child => {
-              // Convert media content ID to accessible URL
-              if (folderPath.startsWith('/media/')) {
-                return `/media/${mediaPath}/${child.title}`;
-              } else {
-                return `/local/${child.title}`;
-              }
-            });
+          if (mediaItems && mediaItems.children) {
+            // Filter for images only
+            this._posterFiles = mediaItems.children
+              .filter(item => {
+                const isImage = item.media_content_type?.startsWith('image/') || 
+                               item.title?.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+                return isImage;
+              })
+              .map(item => {
+                // Return the media_content_id which can be resolved by HA
+                return item.media_content_id;
+              });
 
-          if (posterList.length > 0) {
-            this._posterFiles = posterList;
-            
-            // Shuffle if random order
+            console.log(`Loaded ${this._posterFiles.length} posters from media browser`);
+
             if (this._config.poster_order === 'random') {
               this._shuffleArray(this._posterFiles);
             }
-            
-            this._loadingPosters = false;
-            this.render();
-            return;
           }
+        } catch (error) {
+          console.error('Failed to load from media browser:', error);
+          console.log('Make sure media_source integration is enabled and poster_path is correct');
+          console.log('Example: media-source://media_source/local/posters');
         }
-      } catch (apiError) {
-        console.log('Media browser API not available, using fallback method:', apiError);
       }
 
-      // Fallback: Try common naming patterns
-      const extensions = ['jpg', 'jpeg', 'png', 'webp'];
-      const posterList = [];
-      
-      // Try numbered posters: poster1.jpg, poster2.jpg, etc.
-      for (let i = 1; i <= 100; i++) {
-        for (const ext of extensions) {
-          posterList.push(`${folderPath}/poster${i}.${ext}`);
-        }
-      }
-      
-      // Try common movie poster naming patterns
-      const commonNames = [
-        'poster', 'cover', 'artwork', 'thumb', 'thumbnail',
-        'movie', 'film', 'cinema', 'image', 'photo'
-      ];
-      
-      for (const name of commonNames) {
-        for (let i = 1; i <= 20; i++) {
-          for (const ext of extensions) {
-            posterList.push(`${folderPath}/${name}${i}.${ext}`);
-            posterList.push(`${folderPath}/${name}_${i}.${ext}`);
-            posterList.push(`${folderPath}/${name}-${i}.${ext}`);
-          }
-        }
-      }
-      
-      this._posterFiles = posterList;
-      
-      // Shuffle if random order
-      if (this._config.poster_order === 'random') {
-        this._shuffleArray(this._posterFiles);
-      }
-      
     } catch (error) {
-      console.error('Error loading posters from folder:', error);
-      this._posterFiles = this._config.posters || [];
+      console.error('Error loading posters:', error);
     }
     
     this._loadingPosters = false;
+    this._startSlideshow();
     this.render();
+  }
+
+  async _resolveMediaUrl(mediaContentId) {
+    if (!mediaContentId) return '';
+    
+    // If it's already a URL, return it
+    if (mediaContentId.startsWith('http') || mediaContentId.startsWith('/')) {
+      return mediaContentId;
+    }
+
+    // Resolve media content ID to URL
+    try {
+      const resolved = await this._hass.callWS({
+        type: 'media_source/resolve_media',
+        media_content_id: mediaContentId
+      });
+      return resolved.url;
+    } catch (error) {
+      console.error('Failed to resolve media URL:', error);
+      return '';
+    }
   }
 
   _shuffleArray(array) {
@@ -194,7 +160,6 @@ class MoviePosterCard extends HTMLElement {
     if (this._config.fullscreen) {
       this._setupFullscreen();
     }
-    // Start progress updates if already playing
     if (this._isMediaPlaying()) {
       this._startProgressUpdates();
     }
@@ -214,12 +179,11 @@ class MoviePosterCard extends HTMLElement {
 
   _startSlideshow() {
     this._stopSlideshow();
-    const posterSource = this._posterFiles.length > 0 ? this._posterFiles : this._config.posters;
     
-    if (posterSource && posterSource.length > 1) {
+    if (this._posterFiles && this._posterFiles.length > 1) {
       this._slideInterval = setInterval(() => {
         if (!this._isMediaPlaying()) {
-          this._currentPosterIndex = (this._currentPosterIndex + 1) % posterSource.length;
+          this._currentPosterIndex = (this._currentPosterIndex + 1) % this._posterFiles.length;
           this.render();
         }
       }, this._config.slide_interval);
@@ -236,7 +200,6 @@ class MoviePosterCard extends HTMLElement {
   _startProgressUpdates() {
     this._stopProgressUpdates();
     
-    // Update progress bar every second while playing
     this._progressInterval = setInterval(() => {
       if (this._isMediaPlaying()) {
         this._updateProgressBar();
@@ -262,19 +225,16 @@ class MoviePosterCard extends HTMLElement {
     const updatedAt = mediaPlayer.attributes?.media_position_updated_at;
 
     if (mediaDuration > 0 && mediaPosition >= 0 && updatedAt) {
-      // Calculate current position based on last update time
       const now = new Date().getTime() / 1000;
       const updatedAtTime = new Date(updatedAt).getTime() / 1000;
       const elapsedSinceUpdate = now - updatedAtTime;
       
-      // Only add elapsed time if media is playing (not paused)
       const currentPosition = mediaPlayer.state === 'playing' 
         ? Math.min(mediaPosition + elapsedSinceUpdate, mediaDuration)
         : mediaPosition;
 
       const progressPercent = (currentPosition / mediaDuration) * 100;
 
-      // Update progress bar and time displays
       const progressFill = this.shadowRoot.querySelector('.progress-fill');
       const currentTimeEl = this.shadowRoot.querySelector('.current-time');
       
@@ -400,7 +360,6 @@ class MoviePosterCard extends HTMLElement {
       return mediaPosition;
     }
 
-    // Calculate current position based on last update time
     const now = new Date().getTime() / 1000;
     const updatedAtTime = new Date(updatedAt).getTime() / 1000;
     const elapsedSinceUpdate = now - updatedAtTime;
@@ -408,15 +367,22 @@ class MoviePosterCard extends HTMLElement {
     return mediaPosition + elapsedSinceUpdate;
   }
 
-  render() {
+  async render() {
     if (!this._hass || !this._config) return;
 
     const mediaPlayer = this._getMediaPlayerState();
     const isPlaying = this._isMediaPlaying();
     const weather = this._getWeatherState();
 
-    const posterSource = this._posterFiles.length > 0 ? this._posterFiles : this._config.posters;
-    const posterUrl = posterSource[this._currentPosterIndex] || '';
+    // Get current poster URL
+    let posterUrl = '';
+    if (this._posterFiles.length > 0) {
+      const currentPoster = this._posterFiles[this._currentPosterIndex];
+      if (currentPoster) {
+        posterUrl = await this._resolveMediaUrl(currentPoster);
+      }
+    }
+
     const mediaArt = mediaPlayer?.attributes?.entity_picture || '';
     const mediaTitle = mediaPlayer?.attributes?.media_title || '';
     const mediaDuration = mediaPlayer?.attributes?.media_duration || 0;
@@ -682,17 +648,6 @@ class MoviePosterCard extends HTMLElement {
             padding: 0.5rem 1rem;
           }
         }
-
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
       </style>
 
       <div class="container">
@@ -758,11 +713,9 @@ class MoviePosterCard extends HTMLElement {
   static getStubConfig() {
     return {
       media_player: 'media_player.apple_tv',
-      poster_path: '/local/posters',
-      poster_folder: '/media/posters',
-      auto_load_folder: true,
-      poster_order: 'random',
+      poster_path: 'media-source://media_source/local/posters',
       posters: [],
+      poster_order: 'random',
       slide_interval: 30,
       show_time: true,
       show_weather: false,
@@ -786,5 +739,5 @@ window.customCards.push({
   name: 'Movie Poster Card',
   description: 'Display movie posters with Apple TV integration',
   preview: true,
-  documentationURL: 'https://github.com/ursnirmalt/movie-poster-card',
+  documentationURL: 'https://github.com/yourusername/movie-poster-card',
 });
