@@ -225,7 +225,7 @@ time_style:
 ## Support & Feedback
 
 ### Report Issues
-- GitHub Issues: [yourusername/movie-poster-card/issues](https://github.com/yourusername/movie-poster-card/issues)
+- GitHub Issues: [ursnirmalt/movie-poster-card/issues](https://github.com/ursnirmalt/movie-poster-card/issues)
 - Include: HA version, browser, configuration, console errors
 
 ### Feature Requests
@@ -258,4 +258,4 @@ MIT License - See [LICENSE](LICENSE) file for details
 
 **Latest Release:** v2.0.0  
 **Release Date:** February 17, 2024  
-**Download:** [GitHub Releases](https://github.com/yourusername/movie-poster-card/releases)
+**Download:** [GitHub Releases](https://github.com/ursnirmalt/movie-poster-card/releases)
